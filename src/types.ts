@@ -20,8 +20,9 @@ export interface Venue {
   description: string;
   images: string[];
   facilities: string[];
-  price: number;           // 元/时段
-  capacity: number;        // 最大容纳人数
+  price: number;
+  timeSlotPrices: Record<TimeSlot, number>;
+  capacity: number;
   rating: number;          // 平均评分
   reviewCount: number;
   openingHours: string;

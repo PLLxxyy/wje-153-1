@@ -121,7 +121,7 @@ export default function BookingForm({ venueId, date, timeSlot, onNavigate, showT
           </div>
           <div className="detail-info-row">📅 <strong>日期：</strong>{date}</div>
           <div className="detail-info-row">🕐 <strong>时段：</strong>{timeSlotLabel}</div>
-          <div className="detail-info-row">💰 <strong>费用：</strong>{venue.price} 元</div>
+          <div className="detail-info-row">💰 <strong>费用：</strong>{venue.timeSlotPrices[timeSlot]} 元</div>
         </div>
 
         {/* Form */}

@@ -3,8 +3,8 @@
    ================================================================ */
 
 import React, { useState, useMemo } from 'react';
-import type { Venue, Booking, VenueType } from '../types';
-import { VENUE_TYPE_LABELS, TIME_SLOT_LABELS, VENUE_TYPE_TAG_CLASS } from '../types';
+import type { Venue, Booking, VenueType, TimeSlot } from '../types';
+import { VENUE_TYPE_LABELS, TIME_SLOT_LABELS, VENUE_TYPE_TAG_CLASS, TIME_SLOTS } from '../types';
 import { getVenues, getBookings, updateBooking, saveVenues } from '../utils/storage';
 
 interface Props {
@@ -116,7 +116,9 @@ export default function VenueManagement({ onNavigate, showToast }: Props) {
                   </span>
                 </div>
                 <div style={{ color: '#888', fontSize: '0.85rem' }}>📍 {venue.location}</div>
-                <div style={{ color: '#888', fontSize: '0.85rem' }}>💰 {venue.price}元/时段 | 👥 容量{venue.capacity}人</div>
+                <div style={{ color: '#888', fontSize: '0.85rem' }}>
+                  💰 上午{venue.timeSlotPrices.morning}元 / 下午{venue.timeSlotPrices.afternoon}元 / 晚上{venue.timeSlotPrices.evening}元 | 👥 容量{venue.capacity}人
+                </div>
               </div>
               <button className="btn-secondary" style={{ fontSize: '0.85rem', padding: '8px 16px' }} onClick={() => setEditingVenue(venue)}>
                 编辑
@@ -152,20 +154,26 @@ function EditVenueModal({
   const [name, setName] = useState(venue.name);
   const [location, setLocation] = useState(venue.location);
   const [description, setDescription] = useState(venue.description);
-  const [price, setPrice] = useState(venue.price);
+  const [timeSlotPrices, setTimeSlotPrices] = useState<Record<TimeSlot, number>>({ ...venue.timeSlotPrices });
   const [capacity, setCapacity] = useState(venue.capacity);
   const [contactPhone, setContactPhone] = useState(venue.contactPhone);
   const [openingHours, setOpeningHours] = useState(venue.openingHours);
   const [facilitiesStr, setFacilitiesStr] = useState(venue.facilities.join(', '));
 
+  function handleSlotPriceChange(slot: TimeSlot, value: number) {
+    setTimeSlotPrices((prev) => ({ ...prev, [slot]: value }));
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const price = Math.min(...TIME_SLOTS.map((s) => timeSlotPrices[s]));
     onSave({
       ...venue,
       name: name.trim(),
       location: location.trim(),
       description: description.trim(),
       price,
+      timeSlotPrices,
       capacity,
       contactPhone: contactPhone.trim(),
       openingHours: openingHours.trim(),
@@ -192,8 +200,16 @@ function EditVenueModal({
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div className="form-group">
-              <label>价格 (元/时段)</label>
-              <input type="number" value={price} onChange={(e) => setPrice(parseInt(e.target.value) || 0)} />
+              <label>上午价格 (元)</label>
+              <input type="number" value={timeSlotPrices.morning} onChange={(e) => handleSlotPriceChange('morning', parseInt(e.target.value) || 0)} />
+            </div>
+            <div className="form-group">
+              <label>下午价格 (元)</label>
+              <input type="number" value={timeSlotPrices.afternoon} onChange={(e) => handleSlotPriceChange('afternoon', parseInt(e.target.value) || 0)} />
+            </div>
+            <div className="form-group">
+              <label>晚上价格 (元)</label>
+              <input type="number" value={timeSlotPrices.evening} onChange={(e) => handleSlotPriceChange('evening', parseInt(e.target.value) || 0)} />
             </div>
             <div className="form-group">
               <label>容量 (人)</label>
