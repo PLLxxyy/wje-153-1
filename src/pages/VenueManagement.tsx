@@ -4,7 +4,7 @@
 
 import React, { useState, useMemo } from 'react';
 import type { Venue, Booking, VenueType, TimeSlot } from '../types';
-import { VENUE_TYPE_LABELS, TIME_SLOT_LABELS, VENUE_TYPE_TAG_CLASS, TIME_SLOTS } from '../types';
+import { VENUE_TYPE_LABELS, TIME_SLOT_LABELS, VENUE_TYPE_TAG_CLASS, TIME_SLOTS, getSlotPrice, ensureTimeSlotPrices } from '../types';
 import { getVenues, getBookings, updateBooking, saveVenues } from '../utils/storage';
 
 interface Props {
@@ -117,7 +117,7 @@ export default function VenueManagement({ onNavigate, showToast }: Props) {
                 </div>
                 <div style={{ color: '#888', fontSize: '0.85rem' }}>📍 {venue.location}</div>
                 <div style={{ color: '#888', fontSize: '0.85rem' }}>
-                  💰 上午{venue.timeSlotPrices.morning}元 / 下午{venue.timeSlotPrices.afternoon}元 / 晚上{venue.timeSlotPrices.evening}元 | 👥 容量{venue.capacity}人
+                  💰 上午{getSlotPrice(venue, 'morning')}元 / 下午{getSlotPrice(venue, 'afternoon')}元 / 晚上{getSlotPrice(venue, 'evening')}元 | 👥 容量{venue.capacity}人
                 </div>
               </div>
               <button className="btn-secondary" style={{ fontSize: '0.85rem', padding: '8px 16px' }} onClick={() => setEditingVenue(venue)}>
@@ -154,7 +154,7 @@ function EditVenueModal({
   const [name, setName] = useState(venue.name);
   const [location, setLocation] = useState(venue.location);
   const [description, setDescription] = useState(venue.description);
-  const [timeSlotPrices, setTimeSlotPrices] = useState<Record<TimeSlot, number>>({ ...venue.timeSlotPrices });
+  const [timeSlotPrices, setTimeSlotPrices] = useState<Record<TimeSlot, number>>(ensureTimeSlotPrices(venue));
   const [capacity, setCapacity] = useState(venue.capacity);
   const [contactPhone, setContactPhone] = useState(venue.contactPhone);
   const [openingHours, setOpeningHours] = useState(venue.openingHours);

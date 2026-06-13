@@ -122,3 +122,26 @@ export const VENUE_TYPE_TAG_CLASS: Record<VenueType, string> = {
 
 /** 时段列表 */
 export const TIME_SLOTS: TimeSlot[] = ['morning', 'afternoon', 'evening'];
+
+/** 获取场地某时段价格（防御回退：若 timeSlotPrices 缺失则回退到 venue.price 或 50） */
+export function getSlotPrice(venue: Partial<Venue> & { price?: number; timeSlotPrices?: Record<TimeSlot, number> }, slot: TimeSlot): number {
+  if (venue.timeSlotPrices && typeof venue.timeSlotPrices[slot] === 'number') {
+    return venue.timeSlotPrices[slot];
+  }
+  return typeof venue.price === 'number' ? venue.price : 50;
+}
+
+/** 构造完整的 timeSlotPrices（从缺失状态补齐） */
+export function ensureTimeSlotPrices(venue: Partial<Venue> & { price?: number; timeSlotPrices?: Record<TimeSlot, number> }): Record<TimeSlot, number> {
+  const base = typeof venue.price === 'number' ? venue.price : 50;
+  const morning = venue.timeSlotPrices && typeof venue.timeSlotPrices.morning === 'number'
+    ? venue.timeSlotPrices.morning
+    : Math.round(base * 0.7 / 5) * 5;
+  const afternoon = venue.timeSlotPrices && typeof venue.timeSlotPrices.afternoon === 'number'
+    ? venue.timeSlotPrices.afternoon
+    : base;
+  const evening = venue.timeSlotPrices && typeof venue.timeSlotPrices.evening === 'number'
+    ? venue.timeSlotPrices.evening
+    : Math.round(base * 1.3 / 5) * 5;
+  return { morning, afternoon, evening };
+}

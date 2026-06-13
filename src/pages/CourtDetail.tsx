@@ -4,7 +4,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import type { Venue, DaySlot, TimeSlot, Review } from '../types';
-import { VENUE_TYPE_LABELS, VENUE_TYPE_TAG_CLASS, TIME_SLOT_LABELS, TIME_SLOTS } from '../types';
+import { VENUE_TYPE_LABELS, VENUE_TYPE_TAG_CLASS, TIME_SLOT_LABELS, TIME_SLOTS, getSlotPrice } from '../types';
 import { getVenueById, getDaySlot, getReviewsByVenue } from '../utils/storage';
 
 interface Props {
@@ -145,7 +145,7 @@ export default function CourtDetail({ venueId, onNavigate }: Props) {
         <div className="detail-info-row">📍 <strong>地址：</strong>{venue.location}</div>
         <div className="detail-info-row">🕐 <strong>营业时间：</strong>{venue.openingHours}</div>
         <div className="detail-info-row">📞 <strong>电话：</strong>{venue.contactPhone}</div>
-        <div className="detail-info-row">💰 <strong>价格：</strong>上午 {venue.timeSlotPrices.morning} 元 / 下午 {venue.timeSlotPrices.afternoon} 元 / 晚上 {venue.timeSlotPrices.evening} 元</div>
+        <div className="detail-info-row">💰 <strong>价格：</strong>上午 {getSlotPrice(venue, 'morning')} 元 / 下午 {getSlotPrice(venue, 'afternoon')} 元 / 晚上 {getSlotPrice(venue, 'evening')} 元</div>
         <div className="detail-info-row">👥 <strong>容量：</strong>{venue.capacity} 人</div>
         <div className="detail-info-row" style={{ color: '#f5a623' }}>
           <strong>评分：</strong> {renderStars(venue.rating)} {venue.rating.toFixed(1)} ({venue.reviewCount}条评价)
@@ -225,7 +225,7 @@ export default function CourtDetail({ venueId, onNavigate }: Props) {
                     disabled={!available}
                   >
                     {isSelected ? '✓ 已选择 — ' : ''}{TIME_SLOT_LABELS[slot]}
-                    {!available ? ' (已约满)' : ` — ${venue.timeSlotPrices[slot]}元`}
+                    {!available ? ' (已约满)' : ` — ${getSlotPrice(venue, slot)}元`}
                   </button>
                 </div>
               );
@@ -235,7 +235,7 @@ export default function CourtDetail({ venueId, onNavigate }: Props) {
             {selectedSlot && (
               <div style={{ marginTop: 16 }}>
                 <button className="btn-primary" onClick={handleBook}>
-                  立即预约 — {venue.timeSlotPrices[selectedSlot]} 元
+                  立即预约 — {getSlotPrice(venue, selectedSlot)} 元
                 </button>
               </div>
             )}

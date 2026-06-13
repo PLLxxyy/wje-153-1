@@ -4,7 +4,7 @@
 
 import React, { useState, useMemo } from 'react';
 import type { TimeSlot } from '../types';
-import { VENUE_TYPE_LABELS, VENUE_TYPE_TAG_CLASS, TIME_SLOT_LABELS } from '../types';
+import { VENUE_TYPE_LABELS, VENUE_TYPE_TAG_CLASS, TIME_SLOT_LABELS, getSlotPrice } from '../types';
 import { getVenueById, addBooking, getDaySlot, upsertDaySlot, getUser } from '../utils/storage';
 
 interface Props {
@@ -121,7 +121,7 @@ export default function BookingForm({ venueId, date, timeSlot, onNavigate, showT
           </div>
           <div className="detail-info-row">📅 <strong>日期：</strong>{date}</div>
           <div className="detail-info-row">🕐 <strong>时段：</strong>{timeSlotLabel}</div>
-          <div className="detail-info-row">💰 <strong>费用：</strong>{venue.timeSlotPrices[timeSlot]} 元</div>
+          <div className="detail-info-row">💰 <strong>费用：</strong>{getSlotPrice(venue, timeSlot)} 元</div>
         </div>
 
         {/* Form */}

@@ -3,7 +3,7 @@
    ================================================================ */
 
 import { STORAGE_KEYS } from '../types';
-import type { Venue, Booking, DaySlot, Review, UserProfile } from '../types';
+import type { Venue, Booking, DaySlot, Review, UserProfile, TimeSlot } from '../types';
 
 /* ---------- generic helpers ---------- */
 
@@ -22,12 +22,47 @@ function writeJSON<T>(key: string, value: T): void {
 
 /* ---------- Venues ---------- */
 
-export function getVenues(): Venue[] {
-  return readJSON<Venue[]>(STORAGE_KEYS.VENUES, []);
+function normalizeVenue(v: any): Venue {
+  if (!v.timeSlotPrices) {
+    const base = typeof v.price === 'number' ? v.price : 50;
+    const morning = Math.round(base * 0.7 / 5) * 5;
+    const afternoon = base;
+    const evening = Math.round(base * 1.3 / 5) * 5;
+    v.timeSlotPrices = { morning, afternoon, evening };
+  } else {
+    const defaults: Record<TimeSlot, number> = { morning: 50, afternoon: 50, evening: 50 };
+    v.timeSlotPrices = {
+      morning: typeof v.timeSlotPrices.morning === 'number' ? v.timeSlotPrices.morning : defaults.morning,
+      afternoon: typeof v.timeSlotPrices.afternoon === 'number' ? v.timeSlotPrices.afternoon : defaults.afternoon,
+      evening: typeof v.timeSlotPrices.evening === 'number' ? v.timeSlotPrices.evening : defaults.evening,
+    };
+  }
+  if (typeof v.price !== 'number') {
+    v.price = Math.min(v.timeSlotPrices.morning, v.timeSlotPrices.afternoon, v.timeSlotPrices.evening);
+  }
+  return v as Venue;
 }
 
 export function saveVenues(venues: Venue[]): void {
-  writeJSON(STORAGE_KEYS.VENUES, venues);
+  const normalized = venues.map(normalizeVenue);
+  writeJSON(STORAGE_KEYS.VENUES, normalized);
+}
+
+function normalizeVenues(list: any[]): Venue[] {
+  let mutated = false;
+  const result = list.map((v) => {
+    const before = JSON.stringify(v);
+    const normalized = normalizeVenue(v);
+    if (JSON.stringify(normalized) !== before) mutated = true;
+    return normalized;
+  });
+  if (mutated) saveVenues(result);
+  return result;
+}
+
+export function getVenues(): Venue[] {
+  const raw = readJSON<any[]>(STORAGE_KEYS.VENUES, []);
+  return normalizeVenues(raw);
 }
 
 export function getVenueById(id: string): Venue | undefined {
